@@ -378,40 +378,50 @@ def search_github_code_sharded(token: str, per_page: int = 100, max_pages_per_sh
     return all_results
 
 def save_results(results: List[Dict], output_file: str = None):
-    """Save results with rich formatting"""
+    """Save results safely — create folder & file if they don’t exist."""
     import os
-    
+    from datetime import datetime
+    import json
+
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    # If no output file was given, create a default one
     if not output_file:
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        output_file = f"github_keys_sharded_{timestamp}.json"
-    elif os.path.isdir(output_file):
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        output_file = f"results/github_keys_sharded_{timestamp}.json"
+
+    # If a directory was given (or ends with '/'), use it as a folder
+    elif os.path.isdir(output_file) or output_file.endswith("/"):
         output_file = os.path.join(output_file, f"github_keys_sharded_{timestamp}.json")
-    
-    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
-    
-    with open(output_file, 'w') as f:
+
+    # Ensure parent directory exists
+    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else ".", exist_ok=True)
+
+    # Save main JSON results
+    with open(output_file, "w") as f:
         json.dump(results, f, indent=2)
-    
-    keys_file = output_file.replace('.json', '_keys.txt')
-    unique_keys = list(set([result['key'] for result in results]))
-    
-    with open(keys_file, 'w') as f:
-        for key in unique_keys:
-            f.write(f"{key}\n")
-    
-    stats_file = output_file.replace('.json', '_stats.txt')
+
+    # Create additional files
+    keys_file = output_file.replace(".json", "_keys.txt")
+    stats_file = output_file.replace(".json", "_stats.txt")
+
+    # Write unique keys
+    unique_keys = sorted(set(result["key"] for result in results if "key" in result))
+    with open(keys_file, "w") as f:
+        f.write("\n".join(unique_keys))
+
+    # Write stats per shard
     shard_stats = {}
-    for result in results:
-        shard_desc = result.get('shard_description', 'unknown')
-        shard_stats[shard_desc] = shard_stats.get(shard_desc, 0) + 1
-    
-    with open(stats_file, 'w') as f:
+    for r in results:
+        desc = r.get("shard_description", "unknown")
+        shard_stats[desc] = shard_stats.get(desc, 0) + 1
+
+    with open(stats_file, "w") as f:
         f.write("SHARD STATISTICS\n")
-        f.write("="*50 + "\n")
-        for shard_desc, count in sorted(shard_stats.items(), key=lambda x: x[1], reverse=True):
-            f.write(f"{shard_desc}: {count} keys\n")
-    
+        f.write("=" * 50 + "\n")
+        for desc, count in sorted(shard_stats.items(), key=lambda x: x[1], reverse=True):
+            f.write(f"{desc}: {count} keys\n")
+
+    # Print summary
     files_info = {
         "Results file": output_file,
         "Keys file": keys_file,
