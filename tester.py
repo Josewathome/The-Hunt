@@ -63,7 +63,7 @@ def check_api_key(api_key: str, thread_id: int = 0) -> tuple[bool, str]:
     client = OpenAI(api_key=api_key)
     try:
         resp = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[{"role": "user", "content": "Say hello!"}],
             max_tokens=5,
         )
