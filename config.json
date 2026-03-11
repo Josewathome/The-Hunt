@@ -1,0 +1,22 @@
+[
+    {
+      "primary_model": "gpt-4o",
+      "extras": ["dall-e-3", "whisper-1", "gpt-4-turbo"]
+    },
+    {
+      "primary_model": "gpt-4o",
+      "extras": []
+    },
+    {
+      "primary_model": "gpt-4o-mini",
+      "extras": []
+    },
+    {
+      "primary_model": "gpt-4-turbo",
+      "extras": []
+    },
+    {
+      "primary_model": "gpt-3.5-turbo",
+      "extras": []
+    }
+  ]
